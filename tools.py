@@ -5,6 +5,8 @@ from numpy.fft import fft, fftfreq
 from oasis.functions import deconvolve
 from scipy.ndimage import gaussian_filter1d
 
+# TODO: change this path to the path where you have the data
+path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
 
 def moving_average(traces, window):
     """Returns the moving average of the traces, a np.array (time_points, n_cells)"""
@@ -45,28 +47,24 @@ def get_spike_trains(traces):
 
 def load_dff(age, recording):
     """Load the dff of the recording, a np.array (time_points, n_cells)"""
-    path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
     dff = np.load(path_to_origin + age + '/' + recording + '/dff.npy')
     return dff
 
 
 def load_raw_traces(age, recording):
     """Load the traces as outputs from segmentation"""
-    path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
     traces = np.load(path_to_origin + age + '/' + recording + '/raw_traces.npy')
     return traces
 
 
 def load_events_train(age, recording):
     """Load the events train found with OASIS"""
-    path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
     events_train = np.load(path_to_origin + age + '/' + recording + '/spike_trains.npy')
     return events_train
 
 
 def load_video(age, recording):
     """Load the .tif video of the recording"""
-    path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
     input_file = path_to_origin + age + '/' + recording + '/video.tif'
     video = io.imread(input_file)
     return video
