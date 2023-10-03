@@ -70,6 +70,13 @@ def load_video(age, recording):
     return video
 
 
+def load_projection(age, recording):
+    """Load the projection of the video"""
+    input_file = path_to_origin + age + '/' + recording + '/projection.npy'
+    z_proj = np.load(input_file)
+    return z_proj
+
+
 def get_colors(n, colormap='rainbow'):
     colors = []
     cmap = plt.cm.get_cmap(colormap)

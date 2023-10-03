@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from itertools import chain
 
-from tools import load_dff, get_colors, load_video, get_spectrum, load_events_train, get_syncronicity_coef
+from tools import load_dff, get_colors, load_projection, get_spectrum, load_events_train, get_syncronicity_coef
 
 
 
@@ -11,11 +11,8 @@ def plot_zproj_rois(age, recording, main_fig, subplot_grid):
     """Load the video and get it's projection"""
 
     try:
-        # Load data
-        video = load_video(age, recording)
-        
-        # Get the projection
-        z_proj = np.mean(video, axis=0)
+        # Load projection
+        z_proj = load_projection(age, recording)
 
         # Plot the projection
         ax = main_fig.add_subplot(subplot_grid)
