@@ -8,6 +8,7 @@ from scipy.ndimage import gaussian_filter1d
 # TODO: change this path to the path where you have the data
 path_to_origin = '/Volumes/T7/organoids/for_paper/data/'
 
+
 def moving_average(traces, window):
     """Returns the moving average of the traces, a np.array (time_points, n_cells)"""
     time_points, n_cells = traces.shape[0], traces.shape[1]
@@ -57,6 +58,7 @@ def load_raw_traces(age, recording):
     return traces
 
 
+# TODO: might need to delete this
 def load_events_train(age, recording):
     """Load the events train found with OASIS"""
     events_train = np.load(path_to_origin + age + '/' + recording + '/spike_trains.npy')
@@ -106,18 +108,13 @@ def get_syncronicity_coef(age, recording):
     """Syncronicity found as the correlation coefficient of the spike trains"""
 
     # Load spike trains
-    events = load_events_train(age, recording)
-
-    # Apply Gaussian filter to the spike trains
-    events = gaussian_filter1d(events, sigma=4, axis=0)
+    events = load_dff(age, recording)
 
     # Get correlation coefficients of each neuron with each other
     corr = np.corrcoef(events.T)
-    coeffs = []
-    for i in range(corr.shape[0]):
-        for j in range(i+1, corr.shape[0]):
-            coeffs.append(corr[i,j])
+    corr = np.tril(corr, k=-1)
+    corr = corr[corr>0]
 
-    return coeffs
+    return list(corr)
 
 
