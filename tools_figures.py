@@ -4,11 +4,13 @@ import matplotlib.gridspec as gridspec
 from itertools import chain
 from skimage import exposure
 from scipy.stats import gaussian_kde
+import os
 
 from tools import load_dff, get_colors, load_projection, get_spectrum, load_events_train, get_syncronicity_coef
 
 # Parameters used for all plots
 font_size = 20
+path_to_figures = '/Volumes/T7/organoids/for_paper/figures/per_recording/'
 
 
 def scale_matrix(matrix, min_out, max_out):
@@ -59,11 +61,11 @@ def plot_dff(age, recording, main_fig, subplot_grid, max_cells=10):
             ax = main_fig.add_subplot(sub_grid[i,0])
             ax.plot(time_stamps, dff[:,i], c='black', linewidth=0.5, clip_on=False)
             if i == int(n_cells/2):
-                ax.axvline(x=time_stamps[-1]+10, ymin=0, ymax=1, color='black', linestyle='-')
+                ax.axvline(x=time_stamps[-1]+10, ymin=0, ymax=2, color='black', linestyle='-')
+                ax.text(time_stamps[-1]+10, -0.5, '200%', rotation=270, ma='center')
                 ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
-                #ax.text(time_stamps[-1]+12, 0.5, '$100\%$', rotation=270) TODO: need to decide if to put a number or not
                 if age=='1.young':
-                    ax.set_ylabel('$\Delta f/f$', fontsize=font_size)
+                    ax.set_ylabel('$\Delta F/F$', fontsize=font_size)
             else:
                 ax.yaxis.set_visible(False)
             ax.spines[['left', 'top']].set_visible(False)
@@ -75,6 +77,68 @@ def plot_dff(age, recording, main_fig, subplot_grid, max_cells=10):
         ax.tick_params(labelbottom=True)
         if age=='2.medium': ax.set_xlabel('time (s)', fontsize=font_size)
     except: print('Could not plot dff for ' + age + ' ' + recording)
+
+
+def plot_dff_single(age, recording, max_cells=10):
+    """Plot single plot for every recording of the Df/f only, during the phase of cleaning."""
+    try:
+        # Load data
+        dff = load_dff(age, recording)
+    except: 
+        print('Could not plot dff for ' + age + ' ' + recording)
+        return None
+    time_points, n_cells = dff.shape
+    if n_cells > max_cells:
+        n_cells = max_cells
+        dff = dff[:, :max_cells]
+    time_stamps = np.linspace(0, time_points/(30/5), time_points)
+
+    # Make folder if not present
+    path_to_save = path_to_figures + age + '/' 
+    if not os.path.exists(path_to_save): os.makedirs(path_to_save)
+    path_to_save = path_to_save + recording + '/'
+    if not os.path.exists(path_to_save): os.makedirs(path_to_save)
+    path_to_save_traces_only = path_to_save + 'single_traces/'
+    if not os.path.exists(path_to_save_traces_only): os.makedirs(path_to_save_traces_only)
+
+    # Create gid to plot all DFF together
+    fig = plt.figure(figsize=(20, 20))
+    fig.suptitle(age + ' ' + recording, fontsize=font_size)
+    grid = gridspec.GridSpec(nrows=n_cells, ncols=1, hspace=1)
+    for i in range(n_cells):
+        ax = fig.add_subplot(grid[i,0])
+        ax.plot(time_stamps, dff[:,i], c='black', linewidth=0.5, clip_on=False)
+        if i == int(n_cells/2):
+            ax.axvline(x=time_stamps[-1]+10, ymin=0, ymax=2, color='black', linestyle='-')
+            ax.text(time_stamps[-1]+10, -0.1, '200%', rotation=270, ma='center')
+            ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+            ax.set_ylabel('$\Delta F/F$', fontsize=font_size)
+        else:
+            ax.yaxis.set_visible(False)
+        ax.spines[['left', 'top']].set_visible(False)
+        ax.spines[['right', 'bottom']].set_visible(False)
+        ax.tick_params(bottom = False)
+        ax.tick_params(labelbottom=False)
+        ax.set_ylim(-0.25, 0.35) # -0.25 is to not cut the bottom of the traces
+    ax.tick_params(bottom = True)
+    ax.tick_params(labelbottom=True)
+    ax.set_xlabel('time (s)', fontsize=font_size)
+    fig.savefig(path_to_save + 'dff.pdf')
+    plt.close(fig)
+
+    # Plot the DFF of every cell separately
+    for i in range(n_cells):
+        fig = plt.figure(figsize=(20, 10))
+        fig.suptitle(age + ' ' + recording + ' cell: ' + str(i+1), fontsize=font_size)
+        ax = fig.add_subplot(111)
+        ax.plot(time_stamps, dff[:,i], c='black')
+        ax.set_ylabel('$\Delta F/F$', fontsize=font_size)
+        ax.set_xlabel('time (s)', fontsize=font_size)
+        ax.spines[['right', 'top']].set_visible(False)
+        fig.savefig(path_to_save_traces_only + 'dff_cell_' + str(i+1) + '.pdf')
+        plt.close(fig)
+    
+    return None
 
 
 def plot_power_spectrum(recordings, main_fig, subplot_grid):
